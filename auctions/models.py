@@ -27,3 +27,7 @@ class Bid(models.Model):
     user = models.ForeignKey(User, on_delete= models.CASCADE)
     createTime = models.DateTimeField(auto_now_add= True)
     listing = models.ForeignKey(Listing, on_delete= models.CASCADE)
+
+class Category(models.Model):
+    type = models.CharField(max_length= 50)
+    
