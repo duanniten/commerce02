@@ -22,4 +22,8 @@ class Listing(models.Model):
 
     closed = models.BooleanField(null= True, default= False)
 
-   
+class Bid(models.Model):
+    value = models.DecimalField(max_digits= 10, decimal_places= 2)
+    user = models.ForeignKey(User, on_delete= models.CASCADE)
+    createTime = models.DateTimeField(auto_now_add= True)
+    listing = models.ForeignKey(Listing, on_delete= models.CASCADE)
