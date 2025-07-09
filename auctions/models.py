@@ -18,6 +18,8 @@ class Listing(models.Model):
     createTime = models.DateTimeField(auto_now_add= True)
     changeTime = models.DateTimeField(auto_now= True)
 
+    createUser = models.ForeignKey(User, on_delete= models.CASCADE)
+
     closed = models.BooleanField(null= True, default= False)
 
-    
+   
