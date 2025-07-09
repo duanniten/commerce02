@@ -4,6 +4,7 @@ from django.db import models
 
 class User(AbstractUser):
     watchlist = models.ForeignKey("Listing", on_delete=models.CASCADE)
+    pass
 
 class Listing(models.Model):
     title = models.CharField(max_length= 100)
@@ -12,8 +13,6 @@ class Listing(models.Model):
     initBid = models.DecimalField(max_digits= 10, decimal_places= 2)
     
     category = models.ManyToManyField("Category")
-
-    biggerBid = models.ForeignKey("Bid", on_delete= models.SET_NULL, null= True, blank= True)
 
     createTime = models.DateTimeField(auto_now_add= True)
     changeTime = models.DateTimeField(auto_now= True)
@@ -30,4 +29,3 @@ class Bid(models.Model):
 
 class Category(models.Model):
     type = models.CharField(max_length= 50)
-    
