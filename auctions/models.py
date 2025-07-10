@@ -3,7 +3,7 @@ from django.db import models
 
 
 class User(AbstractUser):
-    watchlist = models.ForeignKey("Listing", on_delete=models.CASCADE)
+    watchlist = models.ForeignKey("Listing", on_delete=models.CASCADE, null= True)
     pass
 
 class Listing(models.Model):
