@@ -4,7 +4,7 @@ from .models import Listing, Category, Bid
 
 class CreateListingForm(ModelForm):
     class Meta:
-        models = Listing
+        model = Listing
         fields = [
             "title",
             "description",
@@ -14,21 +14,21 @@ class CreateListingForm(ModelForm):
         ]
 class CreateCategory(ModelForm):
     class Meta:
-        models = Category
+        model = Category
         fields = [
             'type'
         ]
 
 class MakeBid(ModelForm):
     class Meta:
-        models = Bid
+        model = Bid
         fields = [
             "value"
         ]
 
 class CloseListing(ModelForm):
     class Meta:
-        models = Listing
+        model = Listing
         fields = [
             "closed"
         ]

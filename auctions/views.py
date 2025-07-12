@@ -4,8 +4,45 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from django.contrib.auth.decorators import login_required
 
+from .models import User, Listing
+from .forms import CreateListingForm
+
+@login_required
+def create_listing_view(request: HttpResponse):
+    if request.method == "POST":
+        form = CreateListingForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            description = form.cleaned_data["description"]
+            imageURL = form.cleaned_data["imageURL"]
+            initBid = form.cleaned_data["initBid"]
+            category = form.cleaned_data["category"]
+            user = request.user
+
+            listing = Listing(
+                title = title,
+                description = description,
+                imageURL = imageURL,
+                initBid = initBid,
+                createUser = user
+            )
+            if category:
+                listing.category.set([category])
+            listing.save()
+            return render(request, "auctions/index.html")
+    return render(request, "auctions/create_listing.html",
+                  context={
+        "create_listing" : CreateListingForm
+        })
+
+def listing_view(request, pk ):
+    if request.method =="POST":
+        pass
+    elif request.method == "GET":
+        listing = Listing.objects.all()[pk - 1]
+        print(pk)
 
 def index(request):
     return render(request, "auctions/index.html")
