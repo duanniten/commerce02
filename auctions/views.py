@@ -4,12 +4,66 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from django.contrib.auth.decorators import login_required
+
+from .models import User, Listing, Bid
+from .forms import CreateListingForm, MakeBid
+
+@login_required
+def create_listing_view(request: HttpResponse):
+    if request.method == "POST":
+        form = CreateListingForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            description = form.cleaned_data["description"]
+            imageURL = form.cleaned_data["imageURL"]
+            initBid = form.cleaned_data["initBid"]
+            category = form.cleaned_data["category"]
+            user = request.user
+
+            listing = Listing(
+                title = title,
+                description = description,
+                imageURL = imageURL,
+                initBid = initBid,
+                createUser = user
+            )
+            if category:
+                listing.category.set([category])
+            listing.save()
+            return render(request, "auctions/index.html")
+    return render(request, "auctions/create_listing.html",
+                  context={
+        "create_listing" : CreateListingForm
+        })
+
+def listing_view(request : HttpResponse, pk ):
+    listing = Listing.objects.all()[pk - 1]
+    biger_bid = Bid.objects.filter(listing = listing).order_by('-value').first()
+    if biger_bid:
+        biger_bid_value = biger_bid.value
+    else:
+        biger_bid_value = listing.initBid
+    
+    if request.method =="POST":
+        form  = MakeBid(request.POST)
+        MakeBid.v
+        if form.is_valid():
+
+    elif request.method == "GET":
+        return render(
+            request, "auctions/listing.html",
+            context={
+                "listing" : listing,
+                "make_bid" : MakeBid,
+                "pk" : pk,
+                "biger_bid" : biger_bid_value
+            }
+        )
 
 
 def index(request):
     return render(request, "auctions/index.html")
-
 
 def login_view(request):
     if request.method == "POST":

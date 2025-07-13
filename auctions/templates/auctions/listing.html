@@ -1,0 +1,27 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+<h2>{{listing.title }}</h2>
+
+{% if message %}
+<div>{{ message }}</div>
+{% endif %}
+
+<div>
+  {{ listing.description }}
+</div>
+<img src="{{ listing.imageURL }}" alt="No Image">
+<div>
+  <h4>Actual Bid Value</h4>
+  {{ biger_bid }}
+</div>
+
+
+<form action="{% url 'listing' pk %}" method="post">
+  {% csrf_token %}
+  {{ make_bid }}
+  <input class="btn btn-primary" type="submit" value="Bid">
+</form>
+
+{% endblock %}

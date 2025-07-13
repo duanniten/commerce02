@@ -12,7 +12,7 @@ class Listing(models.Model):
     imageURL = models.URLField()
     initBid = models.DecimalField(max_digits= 10, decimal_places= 2)
     
-    category = models.ManyToManyField("Category")
+    category = models.ManyToManyField("Category", null= True, blank=True)
 
     createTime = models.DateTimeField(auto_now_add= True)
     changeTime = models.DateTimeField(auto_now= True)
