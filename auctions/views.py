@@ -6,8 +6,8 @@ from django.urls import reverse
 
 from django.contrib.auth.decorators import login_required
 
-from .models import User, Listing
-from .forms import CreateListingForm
+from .models import User, Listing, Bid
+from .forms import CreateListingForm, MakeBid
 
 @login_required
 def create_listing_view(request: HttpResponse):
@@ -37,16 +37,33 @@ def create_listing_view(request: HttpResponse):
         "create_listing" : CreateListingForm
         })
 
-def listing_view(request, pk ):
+def listing_view(request : HttpResponse, pk ):
+    listing = Listing.objects.all()[pk - 1]
+    biger_bid = Bid.objects.filter(listing = listing).order_by('-value').first()
+    if biger_bid:
+        biger_bid_value = biger_bid.value
+    else:
+        biger_bid_value = listing.initBid
+    
     if request.method =="POST":
-        pass
+        form  = MakeBid(request.POST)
+        MakeBid.v
+        if form.is_valid():
+
     elif request.method == "GET":
-        listing = Listing.objects.all()[pk - 1]
-        print(pk)
+        return render(
+            request, "auctions/listing.html",
+            context={
+                "listing" : listing,
+                "make_bid" : MakeBid,
+                "pk" : pk,
+                "biger_bid" : biger_bid_value
+            }
+        )
+
 
 def index(request):
     return render(request, "auctions/index.html")
-
 
 def login_view(request):
     if request.method == "POST":
