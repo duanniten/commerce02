@@ -1,4 +1,5 @@
 from django.forms import ModelForm
+from django.core.exceptions import ValidationError
 
 from .models import Listing, Category, Bid
 
@@ -20,15 +21,22 @@ class CreateCategory(ModelForm):
         ]
 
 class MakeBid(ModelForm):
+    def __init__(self, *args, listing :Listing, **kwatgsd):
+        super().__init__(*args, **kwatgsd)
+        self.listing = listing
 
-    def __init__(self, *args, listing = None, **kwatgsd
-                 ):
-        super().__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, empty_permitted, instance, use_required_attribute, renderer)
     class Meta:
         model = Bid
         fields = [
             "value"
         ]
+    
+    def clean_value(self):
+        value = self.cleaned_data["value"]
+        biger_bid  = Bid.objects.filter(listing = self.listing).order_by('-value').first()
+        if value <= biger_bid.value:
+            raise ValidationError(f"Bid should be biger than atual bid, ${biger_bid:.2f}")
+        return value
 
 class CloseListing(ModelForm):
     class Meta:

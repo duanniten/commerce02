@@ -44,18 +44,29 @@ def listing_view(request : HttpResponse, pk ):
         biger_bid_value = biger_bid.value
     else:
         biger_bid_value = listing.initBid
-    
     if request.method =="POST":
-        form  = MakeBid(request.POST)
-        MakeBid.v
+        form  = MakeBid(request.POST,listing=listing)
         if form.is_valid():
+            value = form.cleaned_data[value]
+            user = request.user
+            bid = Bid(
+                value = value,
+                user = user,
+                listing = listing
+            )
+            bid.save()
+            return render(request, "auctions/index.html")
 
     elif request.method == "GET":
+        if request.user:
+            makeBid = MakeBid(listing=listing)
+        else:
+            makeBid = ""
         return render(
             request, "auctions/listing.html",
             context={
                 "listing" : listing,
-                "make_bid" : MakeBid,
+                "make_bid" : makeBid,
                 "pk" : pk,
                 "biger_bid" : biger_bid_value
             }
@@ -63,7 +74,10 @@ def listing_view(request : HttpResponse, pk ):
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    listings = Listing.objects.all()
+    return render(request, "auctions/index.html", context={
+        "listings" : listings
+    })
 
 def login_view(request):
     if request.method == "POST":

@@ -2,6 +2,18 @@
 
 {% block body %}
     <h2>Active Listings</h2>
-
-    TODO
+        <ul>
+        {% for listing in listings %}
+        {% if listing.closed == False %}
+        <li><ul>
+            <li> {{listing.title}} </li>
+            <li> {{listing.description}} </li>
+            <li> <img src="{{listing.imageURL}}" alt="No image">  </li>
+        </ul></li>
+        {% endif %}
+        {% empty %}
+        <li> No acitive Listings </li>
+        {% endfor %}    
+        </ul>
+        
 {% endblock %}

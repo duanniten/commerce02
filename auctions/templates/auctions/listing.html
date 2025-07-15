@@ -16,8 +16,6 @@
   <h4>Actual Bid Value</h4>
   {{ biger_bid }}
 </div>
-
-
 <form action="{% url 'listing' pk %}" method="post">
   {% csrf_token %}
   {{ make_bid }}
