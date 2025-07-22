@@ -3,13 +3,13 @@ from django.db import models
 
 
 class User(AbstractUser):
-    watchlist = models.ForeignKey("Listing", on_delete=models.CASCADE, null= True)
+    watchlist = models.ManyToManyField("Listing")
     pass
 
 class Listing(models.Model):
     title = models.CharField(max_length= 100)
     description = models.TextField()
-    imageURL = models.URLField()
+    imageURL = models.URLField(blank=True)
     initBid = models.DecimalField(max_digits= 10, decimal_places= 2)
     
     category = models.ManyToManyField("Category", null= True, blank=True)
@@ -29,3 +29,9 @@ class Bid(models.Model):
 
 class Category(models.Model):
     type = models.CharField(max_length= 50)
+
+class Comment(models.Model):
+    listing = models.ForeignKey(Listing, on_delete= models.CASCADE)
+    user = models.ForeignKey(User, on_delete= models.CASCADE)
+    comment = models.TextField()
+    createTime = models.DateTimeField(auto_now_add= True)

@@ -4,10 +4,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
+from decimal import Decimal
+
 from django.contrib.auth.decorators import login_required
 
-from .models import User, Listing, Bid
-from .forms import CreateListingForm, MakeBid
+from .models import User, Listing, Bid, Comment
+from .forms import CreateListingForm, MakeBid, CommentForm
+from .utils import getCurrentBidValue, getComments
 
 @login_required
 def create_listing_view(request: HttpResponse):
@@ -37,40 +40,124 @@ def create_listing_view(request: HttpResponse):
         "create_listing" : CreateListingForm
         })
 
-def listing_view(request : HttpResponse, pk ):
-    listing = Listing.objects.all()[pk - 1]
-    biger_bid = Bid.objects.filter(listing = listing).order_by('-value').first()
-    if biger_bid:
-        biger_bid_value = biger_bid.value
-    else:
-        biger_bid_value = listing.initBid
-    if request.method =="POST":
-        form  = MakeBid(request.POST,listing=listing)
-        if form.is_valid():
-            value = form.cleaned_data[value]
-            user = request.user
-            bid = Bid(
-                value = value,
-                user = user,
-                listing = listing
-            )
-            bid.save()
-            return render(request, "auctions/index.html")
+@login_required
+def watchlist(request: HttpResponse):
+    listings = request.user.watchlist.all()
+    return render(request, "auctions/watchlist.html", context={
+        "listings" : listings
+    })
 
-    elif request.method == "GET":
-        if request.user:
-            makeBid = MakeBid(listing=listing)
+@login_required
+def makebid(request : HttpResponse):
+    msg = None
+    if request.method == "POST":
+        pk = int(request.POST.get("pk"))
+        listing = Listing.objects.all()[pk - 1]
+        currentBidValue, currentBid = getCurrentBidValue(listing)
+        if Decimal(request.POST.get("value")) > currentBidValue:
+            if listing.closed == False:
+                bid = Bid(
+                    value = Decimal(request.POST.get("value")),
+                    user = request.user,
+                    listing = listing
+                )
+                bid.save()
+            else:
+                msg = "This listing is closed"
         else:
+            msg = "Bid should be bigger than current bid"
+    return listing_view(request, pk= pk, msg= msg)
+
+@login_required
+def changeWatchList(request:HttpResponse):
+    if request.method == "POST":
+        pk = int(request.POST.get("pk"))
+        listing = Listing.objects.all()[pk-1]
+
+        if listing in request.user.watchlist.all():
+            request.user.watchlist.remove(listing)
+        else:
+            request.user.watchlist.add(listing)
+    return listing_view(request, pk, msg = None)
+
+@login_required
+def makeComment(request:HttpResponse):
+    if request.method == "POST":
+        pk = int(request.POST.get("pk"))
+        listing = Listing.objects.all()[pk-1]
+        user = request.user
+
+        comment = Comment(
+            comment = request.POST.get("comment"),
+            listing = listing,
+            user = user
+        )
+        comment.save()
+    return listing_view(request, pk, msg=None)
+
+@login_required
+def closeListing(request:HttpResponse):
+    msg = None
+    if request.method == "POST":
+        pk = int(request.POST.get("pk"))
+        listing = Listing.objects.all()[pk-1]
+        if request.user == listing.createUser:
+            listing.closed = True
+            listing.save()
+        else:
+            msg = "User should be the creat user to close"
+    return listing_view(request, pk, msg)
+
+def listing_view(request : HttpResponse, pk , msg = None):
+    listing = Listing.objects.all()[pk-1]
+    currentBidValue, currentBid = getCurrentBidValue(listing)
+    comments = getComments(listing)
+    closedText = ""
+    if listing.closed == True:
             makeBid = ""
-        return render(
-            request, "auctions/listing.html",
-            context={
-                "listing" : listing,
-                "make_bid" : makeBid,
-                "pk" : pk,
-                "biger_bid" : biger_bid_value
+            closeListing = ""
+            watchlist = ""
+            closedText = ""
+            if currentBid == None:
+                closedText  = "Closed with no bids"
+            elif request.user == currentBid.user:
+                closedText  = "you won this bid" 
+
+    elif request.user.is_authenticated:
+            closedText= ""
+            if request.user == listing.createUser:
+                makeBid = ""
+                closeListing = True
+            else: 
+                makeBid = MakeBid(listing=listing)
+                closeListing = False
+            
+            if listing in request.user.watchlist.all():
+                watchlist = "Remove from"
+            else:
+                watchlist = "Add to"
+        
+    else:
+        makeBid = ""
+        closeListing = ""
+        watchlist = ""
+        closedText = ""
+    return render(
+        request, "auctions/listing.html",
+        context={
+            "listing" : listing,
+            "make_bid" : makeBid,
+            "pk" : pk,
+            "biger_bid" : currentBidValue,
+            "closeListing" : closeListing,
+            "watchlist" : watchlist,
+            "message" : msg,
+            "closedText": closedText,
+            "comments": comments,
+            "makecomment": CommentForm
             }
         )
+
 
 
 def index(request):

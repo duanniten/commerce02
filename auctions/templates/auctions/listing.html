@@ -4,22 +4,70 @@
 
 <h2>{{listing.title }}</h2>
 
+{% if watchlist %}
+<form action="{% url 'changeWatchList' %}" method="post">
+  {% csrf_token %}
+  <input type="hidden" name = "pk" value = "{{pk}}">
+  <input class="btn btn-primary" type="submit" value="{{ watchlist }} watchlist ">
+</form>
+{% endif %}
+
 {% if message %}
 <div>{{ message }}</div>
 {% endif %}
+
 
 <div>
   {{ listing.description }}
 </div>
 <img src="{{ listing.imageURL }}" alt="No Image">
-<div>
-  <h4>Actual Bid Value</h4>
-  {{ biger_bid }}
-</div>
-<form action="{% url 'listing' pk %}" method="post">
-  {% csrf_token %}
-  {{ make_bid }}
-  <input class="btn btn-primary" type="submit" value="Bid">
-</form>
 
+{% if listing.closed == False  %}
+  <div>
+    <h4>Current Bid Value</h4>
+    {{ biger_bid }}
+  </div>
+
+  {% if make_bid %}
+  <form action="{% url 'makebid'%}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name = "pk" value = "{{pk}}">
+    {{ make_bid }}
+    <input class="btn btn-primary" type="submit" value="Bid">
+  </form>
+  {% endif %}
+
+  {% if closeListing %}
+  <form action="{% url 'closeListing'%}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name = "pk" value = "{{pk}}">
+    <input class="btn btn-primary" type="submit" value=" close listing ">
+  </form>
+  {% endif %}
+
+{% else %}
+  <h3>Closed listing</h3>
+  
+  <h5>{{ closedText }}</h5>
+  <h4>Closed Value</h4>
+  {{ biger_bid }}
+
+
+{% endif %}
+
+
+{% for comment in comments %}
+<h4> User: </h4> <h5> {{comment.user.username}} </h5>
+<h4> Comment: </h4>
+<h4> {{comment.comment}} </h4>
+<h2>--</h2>
+{% empty %}
+<h3>No comments</h3>
+{% endfor %}
+<form action="{% url 'makeComment'%}" method="post">
+  {% csrf_token %}
+{{ makecomment }}
+<input type="submit" value="Send comment">
+<input type="hidden" name = "pk" value = "{{pk}}">
+</form>
 {% endblock %}
